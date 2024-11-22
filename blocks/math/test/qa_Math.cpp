@@ -41,6 +41,7 @@ const boost::ut::suite<"basic math tests"> basicMath = [] {
     using namespace boost::ut;
     using namespace gr;
     using namespace gr::blocks::math;
+    constexpr auto kLogicalTypes = std::tuple<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>();
     constexpr auto kArithmeticTypes = std::tuple<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float,
                                                  double /*, gr::UncertainValue<float>, gr::UncertainValue<double>,
 std::complex<float>, std::complex<double>*/>();
@@ -112,6 +113,54 @@ std::complex<float>, std::complex<double>*/>();
                        {1,  5,  5,  2}},
             .output = { 0,  1,  2,  2}});
     } | kArithmeticTypes;
+
+    "And"_test = []<typename T>(const T&) {
+        test_block<T, And<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110}},
+            .output = { 0b0000, 0b0101, 0b1011, 0b1110}
+        });
+        test_block<T, And<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110}},
+            .output = { 0b0000, 0b0100, 0b0011, 0b0110}});
+        test_block<T, And<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110},
+                       {0b1010, 0b1011, 0b1111, 0b1100}},
+            .output = { 0b0000, 0b0000, 0b0011, 0b0100}});
+    } | kLogicalTypes;
+
+    "Or"_test = []<typename T>(const T&) {
+        test_block<T, Or<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110}},
+            .output = { 0b0000, 0b0101, 0b1011, 0b1110}
+        });
+        test_block<T, Or<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110}},
+            .output = { 0b0010, 0b1101, 0b1011, 0b1110}});
+        test_block<T, Or<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110},
+                       {0b1010, 0b1011, 0b1111, 0b1100}},
+            .output = { 0b1010, 0b1111, 0b1111, 0b1110}});
+    } | kLogicalTypes;
+
+    "Xor"_test = []<typename T>(const T&) {
+        test_block<T, Xor<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110}},
+            .output = { 0b0000, 0b0101, 0b1011, 0b1110}
+        });
+        test_block<T, Xor<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110}},
+            .output = { 0b0010, 0b1001, 0b1000, 0b1000}});
+        test_block<T, Xor<T>>({
+            .inputs = {{0b0000, 0b0101, 0b1011, 0b1110},
+                       {0b0010, 0b1100, 0b0011, 0b0110},
+                       {0b1010, 0b1011, 0b1111, 0b1100}},
+            .output = { 0b1000, 0b0010, 0b0111, 0b0100}});
+    } | kLogicalTypes;
 
     // clang-format on
 

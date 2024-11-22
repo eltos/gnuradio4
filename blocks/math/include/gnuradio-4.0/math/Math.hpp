@@ -66,6 +66,9 @@ struct MathOpMultiPortImpl : public gr::Block<MathOpMultiPortImpl<T, op>> {
     - Divide: out = in_1 / in_2 / in_3 / ...
     - Add: out = in_1 + in_2 + in_3 + ...
     - Subtract: out = in_1 - in_2 - in_3 - ...
+    - And: out = in_1 & in_2 & in_3 & ...
+    - Or: out = in_1 | in_2 | in_3 | ...
+    - Xor: out = in_1 ^ in_2 ^ in_3 ^ ...
     )"">;
 
     // ports
@@ -102,6 +105,13 @@ using Multiply = MathOpMultiPortImpl<T, std::multiplies<T>>;
 template<typename T>
 using Divide = MathOpMultiPortImpl<T, std::divides<T>>;
 
+template<typename T>
+using And = MathOpMultiPortImpl<T, std::bit_and<T>>;
+template<typename T>
+using Or = MathOpMultiPortImpl<T, std::bit_or<T>>;
+template<typename T>
+using Xor = MathOpMultiPortImpl<T, std::bit_xor<T>>;
+
 } // namespace gr::blocks::math
 
 // clang-format off
@@ -112,7 +122,11 @@ const inline auto registerConstMath = gr::registerBlock<gr::blocks::math::AddCon
 const inline auto registerMultiMath = gr::registerBlock<gr::blocks::math::Add,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Subtract, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Multiply, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Divide,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry());
+                                    | gr::registerBlock<gr::blocks::math::Divide,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::And,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Or,       uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Xor,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry());
+
 // clang-format on
 
 #endif // GNURADIO_MATH_HPP
