@@ -9,6 +9,7 @@
 
 template<typename T>
 struct TestParameters {
+    std::vector<T>              input;
     std::vector<std::vector<T>> inputs;
     std::vector<T>              output;
 };
@@ -23,13 +24,26 @@ void test_block(const TestParameters<T> p) {
 
     // build test graph
     Graph graph;
-    auto& block = graph.emplaceBlock<BlockUnderTest>({{"n_inputs", n_inputs}});
-    for (Size_t i = 0; i < n_inputs; ++i) {
-        auto& src = graph.emplaceBlock<TagSource<T>>({{"values", p.inputs[i]}, {"n_samples_max", static_cast<Size_t>(p.inputs[i].size())}});
-        expect(eq(graph.connect(src, "out"s, block, "in#"s + std::to_string(i)), ConnectionResult::SUCCESS)) << fmt::format("Failed to connect output port of src {} to input port 'in#{}' of block", i, i);
-    }
     auto& sink = graph.emplaceBlock<TagSink<T, ProcessFunction::USE_PROCESS_ONE>>();
-    expect(eq(graph.connect<"out">(block).template to<"in">(sink), ConnectionResult::SUCCESS)) << "Failed to connect output port 'out' of block to input port of sink";
+
+    if (p.input.size() > 0) {
+
+        // single input
+        auto& block = graph.emplaceBlock<BlockUnderTest>();
+        auto& src   = graph.emplaceBlock<TagSource<T>>({{"values", p.input}, {"n_samples_max", static_cast<Size_t>(p.input.size())}});
+        expect(eq(graph.connect(src, "out"s, block, "in"s), ConnectionResult::SUCCESS)) << fmt::format("Failed to connect output port of src to input port of block");
+        expect(eq(graph.connect<"out">(block).template to<"in">(sink), ConnectionResult::SUCCESS)) << "Failed to connect output port 'out' of block to input port of sink";
+
+    } else {
+
+        // multiple inputs (1 or more)
+        auto& block = graph.emplaceBlock<BlockUnderTest>({{"n_inputs", n_inputs}});
+        for (Size_t i = 0; i < n_inputs; ++i) {
+            auto& src = graph.emplaceBlock<TagSource<T>>({{"values", p.inputs[i]}, {"n_samples_max", static_cast<Size_t>(p.inputs[i].size())}});
+            expect(eq(graph.connect(src, "out"s, block, "in#"s + std::to_string(i)), ConnectionResult::SUCCESS)) << fmt::format("Failed to connect output port of src {} to input port 'in#{}' of block", i, i);
+        }
+        expect(eq(graph.connect<"out">(block).template to<"in">(sink), ConnectionResult::SUCCESS)) << "Failed to connect output port 'out' of block to input port of sink";
+    }
 
     // execute and confirm result
     gr::scheduler::Simple scheduler{std::move(graph)};
@@ -192,6 +206,20 @@ std::complex<float>, std::complex<double>*/>();
                        {0b0010, 0b1100, 0b0011, 0b0110},
                        {0b1010, 0b1011, 0b1111, 0b1100}},
             .output = { 0b1000, 0b0010, 0b0111, 0b0100}});
+    } | kLogicalTypes;
+    
+    "Negate"_test = []<typename T>(const T&) {
+        test_block<T, Negate<T>>({
+            .input  = {   1,     2,     8,     17 },
+            .output = {T(-1), T(-2), T(-8), T(-17)}
+        });
+    } | kArithmeticTypes;
+
+    "Not"_test = []<typename T>(const T&) {
+        test_block<T, Not<T>>({
+            .input  = {   0b0000,     0b0101,     0b1011,     0b1110},
+            .output = {T(~0b0000), T(~0b0101), T(~0b1011), T(~0b1110)}
+        });
     } | kLogicalTypes;
 
     // clang-format on

@@ -130,6 +130,31 @@ struct min {
 template<typename T>
 using Min = MathOpMultiPortImpl<T, min<T>>;
 
+template<typename T, typename op>
+requires(std::is_arithmetic_v<T>)
+struct MathOpSinglePortImpl : public gr::Block<MathOpSinglePortImpl<T, op>> {
+    using Description = Doc<R""(
+    @brief Math block transforming a single input to a single output with a given operation
+
+    Depending on the operator op this block computes:
+    - Negate: out = - in
+    - Not: out = ~ in
+    )"">;
+
+    // ports
+    PortIn<T>  in;
+    PortOut<T> out;
+
+    GR_MAKE_REFLECTABLE(MathOpSinglePortImpl, in, out);
+
+    [[nodiscard]] constexpr T processOne(const auto& a) const noexcept { return op{}(a); }
+};
+
+template<typename T>
+using Negate = MathOpSinglePortImpl<T, std::negate<T>>;
+template<typename T>
+using Not = MathOpSinglePortImpl<T, std::bit_not<T>>;
+
 } // namespace gr::blocks::math
 
 // clang-format off
@@ -146,6 +171,8 @@ const inline auto registerMultiMath = gr::registerBlock<gr::blocks::math::Add,  
                                     | gr::registerBlock<gr::blocks::math::And,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Or,       uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Xor,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry());
+const inline auto registerUnaryMath = gr::registerBlock<gr::blocks::math::Negate,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Not,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry());
 
 // clang-format on
 
