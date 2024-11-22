@@ -114,6 +114,38 @@ std::complex<float>, std::complex<double>*/>();
             .output = { 0,  1,  2,  2}});
     } | kArithmeticTypes;
 
+    "Max"_test = []<typename T>(const T&) {
+        test_block<T, Max<T>>({
+            .inputs = {{1, 2, 8, 17}},
+            .output = { 1, 2, 8, 17}
+        });
+        test_block<T, Max<T>>({
+            .inputs = {{9, 4, 5, T(7.0)},
+                       {3, 4, 1, T(2.0)}},
+            .output = { 9, 4, 5, T(7.0)}});
+        test_block<T, Max<T>>({
+            .inputs = {{0, 10, 40, 80},
+                       {1,  2,  4, 20},
+                       {1,  5,  5,  2}},
+            .output = { 1, 10, 40, 80}});
+    } | kArithmeticTypes;
+
+    "Min"_test = []<typename T>(const T&) {
+        test_block<T, Min<T>>({
+            .inputs = {{1, 2, 8, 17}},
+            .output = { 1, 2, 8, 17}
+        });
+        test_block<T, Min<T>>({
+            .inputs = {{9, 4, 5, T(7.0)},
+                       {3, 4, 1, T(2.0)}},
+            .output = { 3, 4, 1, T(2.0)}});
+        test_block<T, Min<T>>({
+            .inputs = {{0, 10, 40, 80},
+                       {1,  2,  4, 20},
+                       {1,  5,  5,  2}},
+            .output = { 0,  2,  4,  2}});
+    } | kArithmeticTypes;
+
     "And"_test = []<typename T>(const T&) {
         test_block<T, And<T>>({
             .inputs = {{0b0000, 0b0101, 0b1011, 0b1110}},
