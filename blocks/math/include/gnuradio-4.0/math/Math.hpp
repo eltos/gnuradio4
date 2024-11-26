@@ -56,7 +56,7 @@ template<typename T>
 using DivideConst = MathOpImpl<T, '/'>;
 
 template<typename T, typename op>
-requires(std::is_arithmetic_v<T>)
+requires(gr::arithmetic_or_complex_like<T>)
 struct MathOpMultiPortImpl : public gr::Block<MathOpMultiPortImpl<T, op>> {
     using Description = Doc<R""(
     @brief Math block combining multiple inputs into a single output with a given operation
@@ -131,7 +131,7 @@ template<typename T>
 using Min = MathOpMultiPortImpl<T, min<T>>;
 
 template<typename T, typename op>
-requires(std::is_arithmetic_v<T>)
+requires(gr::arithmetic_or_complex_like<T>)
 struct MathOpSinglePortImpl : public gr::Block<MathOpSinglePortImpl<T, op>> {
     using Description = Doc<R""(
     @brief Math block transforming a single input to a single output with a given operation
@@ -139,6 +139,7 @@ struct MathOpSinglePortImpl : public gr::Block<MathOpSinglePortImpl<T, op>> {
     Depending on the operator op this block computes:
     - Negate: out = - in
     - Not: out = ~ in
+    - ComplexConjugate: out = Re{in} - Im{in}*i
     )"">;
 
     // ports
@@ -155,6 +156,14 @@ using Negate = MathOpSinglePortImpl<T, std::negate<T>>;
 template<typename T>
 using Not = MathOpSinglePortImpl<T, std::bit_not<T>>;
 
+template<class T = void>
+struct conj {
+    constexpr T operator()(const T& z) const { return std::conj(z); }
+};
+
+template<typename T>
+using ComplexConjugate = MathOpSinglePortImpl<T, conj<T>>;
+
 } // namespace gr::blocks::math
 
 // clang-format off
@@ -162,17 +171,18 @@ const inline auto registerConstMath = gr::registerBlock<gr::blocks::math::AddCon
                                     | gr::registerBlock<gr::blocks::math::SubtractConst, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::MultiplyConst, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::DivideConst,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry());
-const inline auto registerMultiMath = gr::registerBlock<gr::blocks::math::Add,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Subtract, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Multiply, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Divide,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Max,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Min,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
+const inline auto registerMultiMath = gr::registerBlock<gr::blocks::math::Add,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Subtract, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Multiply, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Divide,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Max,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Min,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::And,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Or,       uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
                                     | gr::registerBlock<gr::blocks::math::Xor,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry());
-const inline auto registerUnaryMath = gr::registerBlock<gr::blocks::math::Negate,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double /*, gr::UncertainValue<float>, gr::UncertainValue<double>, std::complex<float>, std::complex<double>, std::string, gr::Packet<float>, gr::Packet<double>, gr::Tensor<float>, gr::Tensor<double>, gr::DataSet<float>, gr::DataSet<double> */>(gr::globalBlockRegistry())
-                                    | gr::registerBlock<gr::blocks::math::Not,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry());
+const inline auto registerUnaryMath = gr::registerBlock<gr::blocks::math::Negate,   uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::Not,      uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t>(gr::globalBlockRegistry())
+                                    | gr::registerBlock<gr::blocks::math::ComplexConjugate, std::complex<float>, std::complex<double>>(gr::globalBlockRegistry());
 
 // clang-format on
 

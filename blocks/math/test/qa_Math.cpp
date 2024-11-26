@@ -59,6 +59,7 @@ const boost::ut::suite<"basic math tests"> basicMath = [] {
     constexpr auto kArithmeticTypes = std::tuple<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float,
                                                  double /*, gr::UncertainValue<float>, gr::UncertainValue<double>,
 std::complex<float>, std::complex<double>*/>();
+    constexpr auto kArithmeticAndComplexTypes = std::tuple<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::complex<float>, std::complex<double>>();
 
     // clang-format off
 
@@ -78,7 +79,7 @@ std::complex<float>, std::complex<double>*/>();
                        {83, 46, 37, 41}},
             .output = {126, 96, 82, 94}
         });
-    } | kArithmeticTypes;
+    } | kArithmeticAndComplexTypes;
 
     "Subtract"_test = []<typename T>(const T&) {
         test_block<T, Subtract<T>>({
@@ -94,7 +95,7 @@ std::complex<float>, std::complex<double>*/>();
                        { 3, 12, 26, 18},
                        { 0, 10, 50,  7}},
             .output = { 12, 16, 12,  4}});
-    } | kArithmeticTypes;
+    } | kArithmeticAndComplexTypes;
 
     "Multiply"_test = []<typename T>(const T&) {
         test_block<T, Multiply<T>>({
@@ -110,7 +111,7 @@ std::complex<float>, std::complex<double>*/>();
                        {4,  5,   6,  2},
                        {8,  9,  10, 11}},
             .output = { 0, 45, 120, 66}});
-    } | kArithmeticTypes;
+    } | kArithmeticAndComplexTypes;
 
     "Divide"_test = []<typename T>(const T&) {
         test_block<T, Divide<T>>({
@@ -126,7 +127,7 @@ std::complex<float>, std::complex<double>*/>();
                        {1,  2,  4, 20},
                        {1,  5,  5,  2}},
             .output = { 0,  1,  2,  2}});
-    } | kArithmeticTypes;
+    } | kArithmeticAndComplexTypes;
 
     "Max"_test = []<typename T>(const T&) {
         test_block<T, Max<T>>({
@@ -213,7 +214,7 @@ std::complex<float>, std::complex<double>*/>();
             .input  = {   1,     2,     8,     17 },
             .output = {T(-1), T(-2), T(-8), T(-17)}
         });
-    } | kArithmeticTypes;
+    } | kArithmeticAndComplexTypes;
 
     "Not"_test = []<typename T>(const T&) {
         test_block<T, Not<T>>({
@@ -221,6 +222,13 @@ std::complex<float>, std::complex<double>*/>();
             .output = {T(~0b0000), T(~0b0101), T(~0b1011), T(~0b1110)}
         });
     } | kLogicalTypes;
+    
+    "ComplexConjugate"_test = []<typename T>(const T&) {
+        test_block<T, ComplexConjugate<T>>({
+            .input  = {T{1.0, +2}, T{0, -1}, T{-3.0, -5.0}, T{8.0, 0.0}},
+            .output = {T{1.0, -2}, T{0, +1}, T{-3.0, +5.0}, T{8.0, 0.0}}
+        });
+    } | std::tuple<std::complex<float>, std::complex<double>>();
 
     // clang-format on
 
